@@ -3,7 +3,8 @@
   zk-queue.core
   (:require [clojure.string :as cs])
   (:import (org.apache.zookeeper ZooKeeper WatchedEvent Watcher)
-           (java.util.concurrent CountDownLatch TimeUnit)))
+           (java.util.concurrent CountDownLatch TimeUnit)
+           org.apache.zookeeper.recipes.queue.DistributedQueue))
 
 (defn- zk-node->zk-node-str
   [{:keys [host port]}]
@@ -46,3 +47,24 @@
                            unlatch-watcher)]
     (when (.await latch conn-timeout TimeUnit/SECONDS)
       client)))
+
+
+(defn init-queue!
+  "Give queue-path and zookeeper-nodes.
+   It will establish connection to zookeeper-cluster and initialize Queue.
+   Returns queue object"
+  [zk-queue-path & zk-nodes]
+  {:pre [(every? :host zk-nodes)
+         (seq zk-queue-path)]}
+  (if-let [zk-client (zk-connect! zk-nodes)]
+    (DistributedQueue. zk-client
+                       zk-queue-path
+                       nil)
+    (throw (ex-info "Failed to Connect to zookeeper"
+                    {:nodes zk-nodes}))))
+
+
+(defn close!
+  "Closes connection with zookeeper associate with this queue."
+  [zk-queue]
+  (.close zk-queue))

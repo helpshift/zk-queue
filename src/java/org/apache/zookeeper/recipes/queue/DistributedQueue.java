@@ -35,9 +35,9 @@ import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 
 /**
- * 
+ *
  * A <a href="package.html">protocol to implement a distributed queue</a>.
- * 
+ *
  */
 
 public class DistributedQueue {
@@ -140,6 +140,15 @@ public class DistributedQueue {
     }
 
     /**
+     * Closes the zookeeper client
+     * @return void
+     * @throws InterruptedException
+     */
+    public void close() throws InterruptedException{
+        this.zookeeper.close();
+    }
+
+    /**
      * Return the head of the queue without modifying the queue.
      * @return the data at the head of the queue.
      * @throws NoSuchElementException
@@ -151,7 +160,7 @@ public class DistributedQueue {
 
         // element, take, and remove follow the same pattern.
         // We want to return the child node with the smallest sequence number.
-        // Since other clients are remove()ing and take()ing nodes concurrently, 
+        // Since other clients are remove()ing and take()ing nodes concurrently,
         // the child with the smallest sequence number in orderedChildren might be gone by the time we check.
         // We don't call getChildren again until we have tried the rest of the nodes in sequence order.
         while(true){
@@ -217,7 +226,7 @@ public class DistributedQueue {
         }
 
         public void process(WatchedEvent event){
-            LOG.debug("Watcher fired on path: " + event.getPath() + " state: " + 
+            LOG.debug("Watcher fired on path: " + event.getPath() + " state: " +
                     event.getState() + " type " + event.getType());
             latch.countDown();
         }
