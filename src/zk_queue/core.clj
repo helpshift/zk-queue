@@ -1,6 +1,48 @@
-(ns zk-queue.core)
+(ns ^{:doc "A thin clojure wrapper over Zookeeper Queue Recipe"
+      :author "Kiran Kulkarni <kk.questworld@gmail.com>"}
+  zk-queue.core
+  (:require [clojure.string :as cs])
+  (:import (org.apache.zookeeper ZooKeeper WatchedEvent Watcher)
+           (java.util.concurrent CountDownLatch TimeUnit)))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn- zk-node->zk-node-str
+  [{:keys [host port]}]
+  (when port
+    host
+    (str host ":" port)))
+
+
+(defn- make-watcher
+  ([handler]
+     (reify Watcher
+       (process [this event]
+         (handler (when event
+                    {:event-type (keyword (.. ^WatchedEvent event
+                                              getType
+                                              name))
+                     :keeper-state (keyword (.. ^WatchedEvent event
+                                                getState
+                                                name))
+                     :path (.getPath ^WatchedEvent event)}))))))
+
+
+(defn zk-connect!
+  [zk-nodes & {:keys [chroot zk-timeout-msec
+                      conn-timeout]
+               :or {chroot ""
+                    zk-timeout-msec 5000
+                    conn-timeout 30}}]
+  {:pre [every? :host zk-nodes]}
+  (let [zk-node-string (cs/join ","
+                                (mapv zk-node->zk-node-str zk-nodes))
+        connection-string (str zk-node-string chroot)
+        latch (CountDownLatch. 1)
+        unlatch-watcher (make-watcher (fn [event]
+                                        (when (= (:keeper-state event)
+                                                 :SyncConnected)
+                                          (.countDown latch))))
+        client (ZooKeeper. connection-string
+                           zk-timeout-msec
+                           unlatch-watcher)]
+    (when (.await latch conn-timeout TimeUnit/SECONDS)
+      client)))
