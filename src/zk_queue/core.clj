@@ -1,7 +1,8 @@
 (ns ^{:doc "A thin clojure wrapper over Zookeeper Queue Recipe"
       :author "Kiran Kulkarni <kk.questworld@gmail.com>"}
   zk-queue.core
-  (:require [clojure.string :as cs])
+  (:require [clojure.string :as cs]
+            [zk-queue.utils :refer [to-byte-array]])
   (:import (org.apache.zookeeper ZooKeeper WatchedEvent Watcher)
            (java.util.concurrent CountDownLatch TimeUnit)
            org.apache.zookeeper.recipes.queue.DistributedQueue))
@@ -68,3 +69,28 @@
   "Closes connection with zookeeper associate with this queue."
   [zk-queue]
   (.close zk-queue))
+
+
+(defn enqueue
+  "Accepts data and enqueues it"
+  [^DistributedQueue zk-queue data]
+  (.offer zk-queue (to-byte-array data)))
+
+
+(defn dequeue
+  "Removes the head of the queue. Returns nil if queue is empty"
+  [^DistributedQueue zk-queue]
+  (.poll zk-queue))
+
+
+(defn peek
+  "Returns the data at first element, doesn't remove it.
+   If queue is empty returns nil"
+  [^DistributedQueue zk-queue]
+  (.peek zk-queue))
+
+
+(defn blocking-dequeue
+  "Removes the head of the queue, blocks if queue is empty"
+  [zk-queue]
+  (.take zk-queue))
