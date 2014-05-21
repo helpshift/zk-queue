@@ -1,6 +1,6 @@
 (ns ^{:doc "Utilities"
       :author "Kiran Kulkarni <kk@helpshift.com>"}
-  zk-queue.utils
+  com.helpshift.zk-queue.utils
   (:import java.nio.ByteBuffer))
 
 

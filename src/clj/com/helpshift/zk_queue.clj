@@ -1,8 +1,8 @@
 (ns ^{:doc "A thin clojure wrapper over Zookeeper Queue Recipe"
       :author "Kiran Kulkarni <kk.questworld@gmail.com>"}
-  zk-queue.core
+  com.helpshift.zk-queue
   (:require [clojure.string :as cs]
-            [zk-queue.utils :refer [to-byte-array]])
+            [com.helpshift.zk-queue.utils :refer [to-byte-array]])
   (:import (org.apache.zookeeper ZooKeeper WatchedEvent Watcher)
            (java.util.concurrent CountDownLatch TimeUnit)
            org.apache.zookeeper.recipes.queue.DistributedQueue))

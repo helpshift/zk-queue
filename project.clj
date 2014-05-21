@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.slf4j/slf4j-api "1.7.7"]
                  [org.apache.zookeeper/zookeeper "3.4.6"]]
+  :source-paths ["src/clj"]
   :java-source-paths ["src/java"])
