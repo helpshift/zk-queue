@@ -1,6 +1,6 @@
 # zk-queue
 
-A Clojure library designed to ... well, that part is up to you.
+This library is a thin wrapper over Zookeeper Kafka Recipe
 
 ## Usage
 
