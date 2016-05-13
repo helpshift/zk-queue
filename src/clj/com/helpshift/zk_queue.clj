@@ -1,6 +1,7 @@
 (ns ^{:doc "A thin clojure wrapper over Zookeeper Queue Recipe"
       :author "Kiran Kulkarni <kk.questworld@gmail.com>"}
   com.helpshift.zk-queue
+  (:refer-clojure :exclude [peek])
   (:require [clojure.string :as cs]
             [com.helpshift.zk-queue.utils :refer [to-byte-array]])
   (:import (org.apache.zookeeper ZooKeeper WatchedEvent Watcher)
@@ -49,6 +50,9 @@
     (when (.await latch conn-timeout TimeUnit/SECONDS)
       client)))
 
+(def valid-path?
+  (some-fn nil? #(.startsWith ^String % "/")))
+
 
 (defn init-queue!
   "Give queue-path and zookeeper-nodes.
@@ -56,13 +60,28 @@
    Returns queue object"
   [zk-queue-path & zk-nodes]
   {:pre [(every? :host zk-nodes)
-         (seq zk-queue-path)]}
+         (seq zk-queue-path)
+         (valid-path? zk-queue-path)]}
   (if-let [zk-client (zk-connect! zk-nodes)]
     (DistributedQueue. zk-client
                        zk-queue-path
                        nil)
     (throw (ex-info "Failed to Connect to zookeeper"
                     {:nodes zk-nodes}))))
+
+
+
+(defn init-queue-with-zk-client
+  "Give queue-path and zookeeper client.
+   Returns queue object"
+  [zk-client zk-queue-path]
+  (assert (instance? ZooKeeper zk-client)
+          "Must provide a org.apache.zookeeper.ZooKeeper instance")
+  (assert (valid-path? zk-queue-path)
+          "Path must start with / character")
+  (DistributedQueue. zk-client
+                     (or zk-queue-path "/")
+                     nil))
 
 
 (defn close!
