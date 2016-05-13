@@ -1,4 +1,4 @@
-(defproject com.helpshift/zk-queue "0.1.0"
+(defproject com.helpshift/zk-queue "0.2.0"
   :description "Clojure wrapper over Queue Recipe for Zookeeper"
   :url "https://github.com/helpshift/zk-queue"
   :license {:name "Apache Licence"
